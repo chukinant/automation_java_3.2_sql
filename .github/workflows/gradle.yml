@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Container start
         uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          file: ./docker-compose.yml
 
       - name: Waiting for сontainer start
         run: sleep 30
