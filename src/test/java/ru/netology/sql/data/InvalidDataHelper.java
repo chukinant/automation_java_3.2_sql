@@ -19,11 +19,11 @@ public class InvalidDataHelper {
         return faker.internet().password();
     }
 
-    private static String genRandomVerificationCode() {
+    public static String genRandomVerificationCode() {
         return faker.numerify("######");
     }
 
-    public static AuthInfo getAuthInfo() {
+    public static AuthInfo genRandomAuthInfo() {
         return new AuthInfo(genRandomUsername(), genRandomPassword());
     }
 

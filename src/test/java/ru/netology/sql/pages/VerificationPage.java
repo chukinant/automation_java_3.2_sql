@@ -19,4 +19,14 @@ public class VerificationPage {
         submitButton.click();
         return new LkPage();
     }
+
+    public void verifyInvalid(String code) {
+        codeInput.setValue(code);
+        submitButton.click();
+    }
+
+    public void assertErrorMsg(String text) {
+        $x("//*[@data-test-id='error-notification']//*[@class='notification__content']").
+                shouldHave(Condition.text(text)).shouldBe(Condition.visible);
+    }
 }

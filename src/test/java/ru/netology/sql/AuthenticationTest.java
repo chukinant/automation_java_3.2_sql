@@ -3,6 +3,7 @@ package ru.netology.sql;
 import com.codeborne.selenide.Selenide;
 import org.junit.jupiter.api.*;
 import ru.netology.sql.data.DbDataHelper;
+import ru.netology.sql.data.InvalidDataHelper;
 import ru.netology.sql.pages.LkPage;
 import ru.netology.sql.pages.LoginPage;
 import ru.netology.sql.pages.VerificationPage;
@@ -35,4 +36,18 @@ public class AuthenticationTest {
         lkPage = verificationPage.verify(DbDataHelper.getVerificationCode());
     }
 
+    @Test
+    @DisplayName("User should not be logged in with invalid credentials")
+    void shouldNotLoginInvalidCredentials () {
+        loginPage.invalidLogin(InvalidDataHelper.genRandomAuthInfo());
+        loginPage.assertErrorMsg("Неверно указан логин или пароль");
+    }
+
+    @Test
+    @DisplayName("User should not be logged in with invalid verification code")
+    void shouldNotLoginInvalidAuthCode () {
+        verificationPage = loginPage.validLogin(validAuthInfo);
+        verificationPage.verifyInvalid(InvalidDataHelper.genRandomVerificationCode());
+        verificationPage.assertErrorMsg("Неверно указан код! Попробуйте ещё раз.");
+    }
 }

@@ -1,7 +1,10 @@
 package ru.netology.sql.pages;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import ru.netology.sql.data.DbDataHelper;
+import ru.netology.sql.data.InvalidDataHelper;
+
 import static com.codeborne.selenide.Selenide.$x;
 
 public class LoginPage {
@@ -14,5 +17,16 @@ public class LoginPage {
         passwordField.setValue(info.getPassword());
         submitButton.click();
         return new VerificationPage();
+    }
+
+    public void invalidLogin(InvalidDataHelper.AuthInfo info) {
+        usernameField.setValue(info.getUsername());
+        passwordField.setValue(info.getPassword());
+        submitButton.click();
+    }
+
+    public void assertErrorMsg(String text) {
+        $x("//*[@data-test-id='error-notification']//*[@class='notification__content']").
+                shouldHave(Condition.text(text)).shouldBe(Condition.visible);
     }
 }
