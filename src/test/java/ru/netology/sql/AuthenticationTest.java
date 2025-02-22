@@ -1,114 +1,38 @@
 package ru.netology.sql;
 
 import com.codeborne.selenide.Selenide;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import ru.netology.page_objects.data.API_Helper;
-import ru.netology.page_objects.data.DataHelper;
-import ru.netology.page_objects.pages.AccountPage;
-import ru.netology.page_objects.pages.LoginPage;
-
-import static ru.netology.page_objects.data.DataHelper.*;
+import org.junit.jupiter.api.*;
+import ru.netology.sql.data.DbDataHelper;
+import ru.netology.sql.pages.LkPage;
+import ru.netology.sql.pages.LoginPage;
+import ru.netology.sql.pages.VerificationPage;
 
 public class AuthenticationTest {
-    AccountPage accountPage;
-    CardInfo firstCardInfo;
-    CardInfo secondCardInfo;
-    int firstCardBalance;
-    int secondCardBalance;
+    LkPage lkPage;
+    VerificationPage verificationPage;
+    LoginPage loginPage;
+    DbDataHelper.User validAuthInfo = DbDataHelper.getValidUserInfo();
 
     @BeforeEach
     void setUp() {
-        Selenide.open("http://localhost:9999");
-        var validUser = getAuthInfo();
-        var verificationCode = getVerificationCode();
-        var loginPage = new LoginPage();
-        var verificationPage = loginPage.validLogin(validUser);
-        accountPage = verificationPage.validVerification(verificationCode);
-        firstCardInfo = DataHelper.getFistCardInfo();
-        secondCardInfo = DataHelper.getSecondCardInfo();
-        firstCardBalance = accountPage.getCardBalance(firstCardInfo.getId());
-        secondCardBalance = accountPage.getCardBalance(secondCardInfo.getId());
+        loginPage = Selenide.open("http://localhost:9999", LoginPage.class);
     }
 
     @AfterEach
-    void resetBalances() {
-        var apiHelper = new API_Helper();
-        apiHelper.resetCardsBalances();
+    void resetAuthCodesTable() {
+        DbDataHelper.cleanVerificationCode();
+    }
+
+    @AfterAll
+    static void resetDB() {
+        DbDataHelper.cleanDB();
     }
 
     @Test
-    void shouldTransferFromFirstToSecondCard() {
-        int amount = generateAmount(firstCardBalance);
-        int expectedFirstCardBalance = firstCardBalance - amount;
-        int expectedSecondCardBalance = secondCardBalance + amount;
-
-        var addToCardPage = accountPage.initiateTransferToCard(secondCardInfo.getId());
-        var accountPage = addToCardPage.moneyTransfer(firstCardInfo.getNumber(), amount);
-
-        accountPage.checkCardBalance(firstCardInfo.getId(), expectedFirstCardBalance);
-        accountPage.checkCardBalance(secondCardInfo.getId(), expectedSecondCardBalance);
+    @DisplayName("User should be logged in with valid credentials")
+    void shouldLogin () {
+        verificationPage = loginPage.validLogin(validAuthInfo);
+        lkPage = verificationPage.verify(DbDataHelper.getVerificationCode());
     }
 
-    @Test
-    void shouldTransferFromSecondToFirstCard() {
-        int amount = generateAmount(secondCardBalance);
-        int expectedFirstCardBalance = firstCardBalance + amount;
-        int expectedSecondCardBalance = secondCardBalance - amount;
-
-        var addToCardPage = accountPage.initiateTransferToCard(firstCardInfo.getId());
-        var accountPage = addToCardPage.moneyTransfer(secondCardInfo.getNumber(), amount);
-
-        accountPage.checkCardBalance(firstCardInfo.getId(), expectedFirstCardBalance);
-        accountPage.checkCardBalance(secondCardInfo.getId(), expectedSecondCardBalance);
-    }
-
-    @Test
-    void shouldNotTransferFromFirstToFirstCard() {
-        int amount = generateAmount(firstCardBalance);
-
-        var addToCardPage = accountPage.initiateTransferToCard(firstCardInfo.getId());
-        addToCardPage.moneyTransfer(firstCardInfo.getNumber(), amount);
-
-        addToCardPage.findErrorMsg();
-    }
-
-    @Test
-    void shouldNotTransferFromSecondToSecondCard() {
-        int amount = generateAmount(secondCardBalance);
-
-        var addToCardPage = accountPage.initiateTransferToCard(secondCardInfo.getId());
-        addToCardPage.moneyTransfer(secondCardInfo.getNumber(), amount);
-
-        addToCardPage.findErrorMsg();
-    }
-
-    @Test
-    void shouldNotTransferNotAvailableAmount() {
-        int amount = secondCardBalance + 1;
-
-        var addToCardPage = accountPage.initiateTransferToCard(firstCardInfo.getId());
-        addToCardPage.moneyTransfer(secondCardInfo.getNumber(), amount);
-
-        addToCardPage.findErrorMsg();
-    }
-
-    @Test
-    void shouldNotTransferEmptyAmountField() {
-        int amount = 1;
-        var addToCardPage = accountPage.initiateTransferToCard(firstCardInfo.getId());
-        addToCardPage.emptyAmountFieldTransfer(secondCardInfo.getNumber(), amount);
-
-        addToCardPage.findErrorMsg();
-    }
-
-    @Test
-    void shouldNotTransferToInvalidCard() {
-        int amount = 1;
-        var addToCardPage = accountPage.initiateTransferToCard(firstCardInfo.getId());
-        addToCardPage.invalidCardFromTransfer(secondCardInfo.getNumber(), amount);
-
-        addToCardPage.findErrorMsg();
-    }
 }

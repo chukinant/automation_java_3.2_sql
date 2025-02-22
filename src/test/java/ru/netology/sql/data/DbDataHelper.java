@@ -1,49 +1,65 @@
 package ru.netology.sql.data;
 
-import com.github.javafaker.Faker;
+import lombok.SneakyThrows;
 import lombok.Value;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class DbDataHelper {
+    private static final QueryRunner queryRunner = new QueryRunner();
 
     private DbDataHelper() {
     }
 
-    public static AuthInfo getAuthInfo() {
-        return new AuthInfo("vasya", "qwerty123");
-    }
-
-    public static VerificationCode getVerificationCode() {
-        return new VerificationCode("12345");
-    }
-
     @Value
-    public static class AuthInfo {
+    public static class User {
         String username;
         String password;
     }
 
-    @Value
-    public static class VerificationCode {
-        String code;
+    public static User getValidUserInfo() {
+        return new User("vasya", "qwerty123");
     }
 
-    public static int generateAmount(int currentBalance) {
-        Faker faker = new Faker();
-        return faker.number().numberBetween(0, currentBalance);
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection("jdbc:mysql://localhost:3306/app", "app", "pass");
     }
 
-    @Value
-    public static class CardInfo {
-        String id;
-        String number;
+    @SneakyThrows
+    public static String getFirstUsername() {
+        var usersSQL = "SELECT login FROM users ORDER BY login DESC LIMIT 1";
+        try (var conn = getConnection()) {
+            return queryRunner.query(conn, usersSQL, new ScalarHandler<>());
+        }
     }
 
-    public static CardInfo getFistCardInfo() {
-        return new CardInfo("92df3f1c-a033-48e6-8390-206f6b1f56c0", "5559 0000 0000 0001");
+    @SneakyThrows
+    public static String getVerificationCode() {
+        var codeSQL = "SELECT code FROM auth_codes ORDER BY created DESC LIMIT 1";
+        try (var conn = getConnection()) {
+            return queryRunner.query(conn, codeSQL, new ScalarHandler<>());
+        }
     }
 
-    public static CardInfo getSecondCardInfo() {
-        return new CardInfo("0f3f5c2a-249e-4c3d-8287-09f7a039391d", "5559 0000 0000 0002");
+    @SneakyThrows
+    public static void cleanVerificationCode() {
+        try (var conn = getConnection()) {
+            queryRunner.execute(conn, "DELETE FROM auth_codes");
+        }
+    }
+
+    @SneakyThrows
+    public static void cleanDB() {
+        try (var conn = getConnection()) {
+            queryRunner.execute(conn, "DELETE FROM card_transactions");
+            queryRunner.execute(conn, "DELETE FROM cards");
+            queryRunner.execute(conn, "DELETE FROM auth_codes");
+            queryRunner.execute(conn, "DELETE FROM users");
+        }
     }
 }
 

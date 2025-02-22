@@ -2,7 +2,7 @@ package ru.netology.sql.pages;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-import ru.netology.page_objects.data.DataHelper;
+import ru.netology.sql.data.DbDataHelper;
 
 import static com.codeborne.selenide.Selenide.$x;
 
@@ -14,9 +14,9 @@ public class VerificationPage {
         codeInput.shouldBe(Condition.visible);
     }
 
-    public AccountPage validVerification(DataHelper.VerificationCode verificationCode) {
-        codeInput.setValue(verificationCode.getCode());
+    public LkPage verify(String code) {
+        codeInput.setValue(code);
         submitButton.click();
-        return new AccountPage();
+        return new LkPage();
     }
 }

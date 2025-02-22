@@ -5,10 +5,10 @@ import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.*;
 
-public class AccountPage {
+public class LkPage {
     private final SelenideElement header = $x("//*[@data-test-id='dashboard']");
 
-    public AccountPage() {
+    public LkPage() {
         header.shouldBe(Condition.visible).shouldHave(Condition.text("Личный кабинет"));
     }
 }
